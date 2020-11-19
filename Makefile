@@ -36,6 +36,8 @@ HelloWorldPerso.exe:	HelloWorldPerso.cpp
 SkeletonMPIProgramWithFilesOutput.exe: SkeletonMPIProgramWithFilesOutput.cpp
 	$(CXX) $(CXXFLAGS) -o SkeletonMPIProgramWithFilesOutput.exe SkeletonMPIProgramWithFilesOutput.cpp $(LIB)
 
+Circulation_jetonPerso.exe:	Circulation_jetonPerso.cpp
+	$(CXX) $(CXXFLAGS) -o Circulation_jetonPerso.exe Circulation_jetonPerso.cpp $(LIB)
 
 help: 
 	@echo "Available targets : "
