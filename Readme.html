@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>Readme</title>
+  <style type="text/css">
+      code{white-space: pre-wrap;}
+      span.smallcaps{font-variant: small-caps;}
+      span.underline{text-decoration: underline;}
+      div.column{display: inline-block; vertical-align: top; width: 50%;}
+  </style>
+  <link rel="stylesheet" href="./github-pandoc.css" />
+</head>
+<body>
+<nav id="TOC">
+<ul>
+<li><a href="#simulation-dune-colonisation-dune-galaxie">Simulation d’une colonisation d’une galaxie</a><ul>
+<li><a href="#installation-des-packages-nécessaires">Installation des packages nécessaires</a><ul>
+<li><a href="#sous-ubuntu">Sous Ubuntu</a></li>
+<li><a href="#sous-msys-2">Sous MSys 2</a></li>
+<li><a href="#sous-mac-os-x">Sous Mac OS-X</a></li>
+</ul></li>
+<li><a href="#description-de-la-simulation-de-colonisation-de-la-galaxie">Description de la simulation de colonisation de la galaxie</a></li>
+</ul></li>
+<li><a href="#parallélisation-du-code">Parallélisation du code</a><ul>
+<li><a href="#parallélisation-de-boucle-en-mémoire-partagée">Parallélisation de boucle en mémoire partagée</a></li>
+<li><a href="#recouvrement-calcul-affichage-en-mémoire-partagée">Recouvrement calcul / affichage en mémoire partagée</a></li>
+<li><a href="#parallélisation-en-mémoire-distribuée">Parallélisation en mémoire distribuée</a></li>
+<li><a href="#remarques">Remarques</a></li>
+</ul></li>
+<li><a href="#travail-à-rendre">Travail à rendre</a></li>
+</ul>
+</nav>
+<h1 id="simulation-dune-colonisation-dune-galaxie">Simulation d’une colonisation d’une galaxie</h1>
+<p>En 1950, lors d’un repas avec ses collègues, Enrico Fermi, discutant de la vie extraterrestre, s’exclame : “Mais où sont-ils donc passés ?” en parlant des extraterrestres. Sachant que le Soleil est une étoile assez jeune dans la galaxie et qu’il existe un grand nombre d’étoiles bien plus anciennes, des civilisations extraterrestres beaucoup plus anciennes auraient dû apparaître dans la galaxie et on devrait en trouver des traces, or ce n’est pas le cas.</p>
+<p>Nommé “paradoxe de Fermi”, plusieurs auteurs ont débattu sur ce paradoxe et ont montré plusieurs faiblesses sur les hypothèses de départ (non exhaustives ici) :</p>
+<ul>
+<li>Le paradoxe part du principe qu’on pourra comprendre une intelligence sûrement très différente de la nôtre</li>
+<li>Il part également du principe que le voyage dans l’espace est facile et que les civilisations technologiques sont faites pour durer</li>
+<li>Enfin, et c’est ce qui nous intéresse, on peut montrer par une approche par percolation, que les civilisations extraterrestres qui colonisent une galaxie peuvent selon certains paramètres “oublier” de grandes zones où la Terre peut très bien se trouver.</li>
+</ul>
+<p>On se propose de paralléliser un programme qui simule la colonisation d’une galaxie par diverses civilisations technologiques à l’aide d’un modèle très simplifié et permet de voir la dynamique de colonisation de la galaxie et pourquoi le paradoxe de Fermi peut ne pas être vraiment un paradoxe…</p>
+<h2 id="installation-des-packages-nécessaires">Installation des packages nécessaires</h2>
+<p>Pour faire fonctionner le programme, il faut installer la librairie SDL 2 qui permet sous divers OS d’afficher une fenêtre graphique. Les commandes pour installer les librairies nécessaires sont données par OS.</p>
+<h3 id="sous-ubuntu">Sous Ubuntu</h3>
+<pre><code>sudo apt install libsdl2-dev
+sudo apt install libsdl2-image-dev</code></pre>
+<h3 id="sous-msys-2">Sous MSys 2</h3>
+<pre><code>pacman -S mingw64/mingw-w64-x86_64-SDL2
+pacman -S mingw64/mingw-w64-x86_64-SDL2_image</code></pre>
+<h3 id="sous-mac-os-x">Sous Mac OS-X</h3>
+<pre><code>brew install sdl2
+brew install sdl2_image</code></pre>
+<h2 id="description-de-la-simulation-de-colonisation-de-la-galaxie">Description de la simulation de colonisation de la galaxie</h2>
+<p>En entrée, le programme lit un fichier contenant des paramètres, à savoir :</p>
+<ul>
+<li>Le nombre de pixel <strong>width</strong> de la fenêtre en longueur. Ce nombre de pixel est corrélé ici au pas de temps que choisira la simulation. En effet, la Voie lactée fait 52840 années lumière, et donc un pixel (en longueur) fera 52840/<strong>width</strong> années lumière. En supposant que la vitesse moyenne maximale permise pour aller d’une étoile à une autre soit de 5% de la vitesse de la lumière, il vient qu’il faudra vingt ans pour faire une année lumière. En considérant une planète habitable par pixel, on aura donc un temps de voyage entre les planètes habitables de 20x52840/<strong>width</strong> années qu’on prendre pour pas de temps. Par exemple, pour une largeur d’écran de 800 pixels, on aura donc 20x52840/800 = 1321 années.</li>
+<li>Le nombre de pixel <strong>height</strong> de la fenêtre en hauteur. Pas d’autres incidences que l’affichage !</li>
+<li>La probabilité qu’une civilisation ayant une technologie suffisante pour coloniser l’espace apparaisse : cette probabilité est une probabilité qui sera testée à chaque pas de temps pour chaque planète habitable ne possédant pas encore de civilisation technologique.</li>
+<li>La probabilité qu’une civilisation technologique disparaisse : cela peut représenter la probabilité qu’une civilisation régresse (à cause d’une guerre, des maladies, etc.) ou bien que la race civilisée s’éteigne mais une autre forme d’intelligence et de civilisation peut réapparaître plus tard</li>
+<li>La probabilité qu’une civilisation technologique décide d’aller coloniser des planètes d’un autres système solaire (la civilisation peut ne pas vouloir à cause du coût, des risques ou tout simplement parce qu’elle n’en voit pas l’intérêt !)</li>
+<li>La probabilité qu’une civilisation technologique rende ou que sa planète devienne inhabitable (guerre nucléaire, destruction de la planète par super nova de l’étoile, etc.).</li>
+</ul>
+<p>À l’initialisation de la simulation, on tire pour chaque pixel la probabilité qu’une civilisation technologique existe.</p>
+<p>Puis à chaque tour, on regarde : - pour chaque planète possédant une civilisation technologique si celle-ci décide de coloniser un ou les systèmes planétaires habitables autour d’elle - puis si cette civilisation disparaît ou non (même si elle a lancé des colonies dans l’espace) - ou si la planète est détruite ou devenue inhabitable. - Pour les planètes habitables ne possédant pas encore de civilisation technologique, on regarde si une telle civilisation apparaît.</p>
+<p>Enfin, on affiche graphiquement le résultat de ce pas de temps : un pixel vert si la planète est habitée, un pixel rouge si la planète est inhabitable, on ne trace pas les planètes habitables mais inhabitées.</p>
+<p><em>Remarque</em> : Quand on parle ici “d’autour une planète”, on parle des pixels à gauche, à droite, au dessus ou ou en dessous, pas des pixels se trouvant en diagonale.</p>
+<h1 id="parallélisation-du-code">Parallélisation du code</h1>
+<p>Lors de la parallélisation du code, il ne faudra pas hésiter à modifier les classes et leurs méthodes.</p>
+<p>Le code devra être parallélisé sur deux niveaux (mémoire partagée et mémoire distribuée), ainsi que sur plusieurs stratégies :</p>
+<h2 id="parallélisation-de-boucle-en-mémoire-partagée">Parallélisation de boucle en mémoire partagée</h2>
+<p>On parallélisera le code dans un premier temps en mémoire partagée, en mettant en œuvre un parallélisme de la boucle de calcul. On s’assurera que si il y a condition de data race, bien expliquer quelles sont ces data races dans le rapport du projet, et bien s’assurer que le cas échéant, elles ne porteront pas préjudice au déroulement du code et aux résultats.</p>
+<h2 id="recouvrement-calcul-affichage-en-mémoire-partagée">Recouvrement calcul / affichage en mémoire partagée</h2>
+<p>Les <em>Timers</em> montrent que la boucle de calcul et la boucle d’affichage prennent un temps similaire (l’équilibre dépend toutefois grandement de la machine). On mettra donc en place la stratégie suivante : - le premier <em>thread</em> affiche la galaxie initiale - pendant ce temps d’affichage, un deuxième <em>thread</em> (ou tous les autres <em>threads</em> si vous cumulez avec la question précédente) calcule le pas de temps suivant - lorsque les deux threads ont terminé, le premier <em>thread</em> affiche le nouvel état pendant que les autres <em>threads</em> continuent le calcul.</p>
+<p><strong>Note</strong> : cette technique est un grand classique de programmation, qui s’appelle le <em>recouvrement des entrées/sorties par du calcul</em> ; elle est souvent employée autour des sauvegardes sur disque dur qui est un goulot d’étranglement du code difficilement accélérable autrement.</p>
+<h2 id="parallélisation-en-mémoire-distribuée">Parallélisation en mémoire distribuée</h2>
+<p>Une fois le code parallélisé en mémoire partagée, on effectuera un deuxième niveau de parallélisme en le parallélisant pour de la mémoire distribuée.</p>
+<p>Dans un premier temps, on se contentera de partager d’un côté le calcul des planètes habitées/habitables/non habitables par percolation, de l’autre côté le rendu graphique :</p>
+<ul>
+<li>Le processus de rang zéro se contentera uniquement d’afficher graphiquement le résultat à chaque pas de temps,</li>
+<li>Le processus de rang un calculera le pas de temps suivant en utilisant l’algorithme de percolation.</li>
+</ul>
+<p>Autrement dit on réalisera la version MPI de la technique de recouvrement calcul / affichage de la question précédente.</p>
+<p>Ensuite, pour paralléliser en mémoire distribuée sur <strong>nbp</strong> processus, on utilisera toujours le processus zéro comme celui qui affichera le résultat à l’écran et pour les autres processus, on découpera la grille de pixel en plusieurs morceaux, soit par tranche dans une direction (horizontale par exemple) soit en découpant dans la direction horizontale mais aussi dans la direction verticale.</p>
+<p>On obtiendra alors des sous-grilles auxquelles on rajoutera sur chaque bord des cellules fantômes, c’est à dire des cellules dont les valeurs qu’on remplira avec la percolation seront ensuite transmises aux cellules de la sous-grille voisine, cellules qui correspondent aux cellules fantômes.</p>
+<p>Ainsi, dans cet exemple en une dimension avec deux sous-grilles, on aura :</p>
+<pre><code>            cellule fantôme (où on calcule si planète habitée, habitable ou inhabitable)
+                   |
+                   v
+|--|--|--|--|--|--|..|          &lt;----- Première grille
+                ^   |
+                |   v   Les flèches indiquent le sens de transmission de l&#39;information
+               |..|--|--|--|--|--|--|--|   &lt;-------- Seconde grille
+                 ^
+                 |
+            cellule fantôme</code></pre>
+<p>Ainsi, une cellule “fantôme” de la première grille enverra donc son nouvel état à la seconde grille qui mettra sa cellule correspondante à jour (voir la <em>remarque</em> ci-dessous pour la mise à jour). Chaque grille aura donc <strong>width</strong>+2 cellules en largeur et éventuellement <strong>height</strong>+2 cellules en hauteur (si on découpe dans les deux directions).</p>
+<p>Ne pas oublier de regrouper les données des cellules fantômes qu’on enverra.</p>
+<h2 id="remarques">Remarques</h2>
+<ul>
+<li><p><em>Faire attention cependant, car une planète qui devient à la fois habitée et habitable (non habitée) sera toujours habitée. Par contre, une planète qui devient à la fois habitée et inhabitable sera toujours inhabitable.</em></p></li>
+<li><p>Cette technique de découpage du domaine de calcul par processeur est un grand classique du calcul haute performance, nommée <em>décomposition de domaines</em>. La stratégie des cellules fantômes est une des solutions possibles pour gérer le raccordement entre les domaines tout en minimisant le nombre d’échanges MPI.</p></li>
+</ul>
+<h1 id="travail-à-rendre">Travail à rendre</h1>
+<ul>
+<li>Le code parallélisé en mémoire partagée ET en mémoire distribuée (le même code).</li>
+<li>Un rapport où on parlera des éventuels conflits mémoires et pourquoi ils ne posent pas de problème, ainsi que le calcul des accélérations (speedup) obtenus en mémoire partagée uniquement, en mémoire distribuée uniquement et en mélangeant les deux parallélisations.</li>
+</ul>
+</body>
+</html>
