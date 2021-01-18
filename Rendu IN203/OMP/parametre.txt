@@ -1,0 +1,6 @@
+1280      # Nombre de pixels en largeur (détermine le pas de temps)
+1024      # Nombre de pixels en hauteur
+1.E-5     # Chance que sur une planète apparaise une civilisation techno en deltaT années
+0.28      # Chance qu'une civilisation technologique disparaisse en deltaT ans
+0.35      # % de chance qu'une civilisation porte ses efforts pour aller coloniser d'autre planètes
+4.E-5     # Chance qu'une civilisation rende sa planète inhabitable en deltaT années
